@@ -40,7 +40,8 @@ class RedisClient
         "del"=> ConvertToBool,
         "renamenx"=> ConvertToBool,
         "expire"=> ConvertToBool,
-        "keys" => lambda{|r| r.split(" ")},
+        # "keys" => lambda{|r| r.split(" ")},
+        "keys" => lambda{|r| r.inject([]){|ar,s| ar.concat(s.split(/\n/))}},
         "info" => lambda{|r| 
             info = {}
             r.each_line {|kv|
