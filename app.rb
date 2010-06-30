@@ -6,6 +6,7 @@ require 'rubyredis'
 
 require 'domain'
 require 'login-signup'
+require 'cgi'
 
 set :sessions, true
 
@@ -37,7 +38,8 @@ post '/post' do
     @posts = @logged_in_user.timeline
     erb :index
   else
-    Post.create(@logged_in_user, params[:content])
+    #Post.create(@logged_in_user, params[:content])
+    Post.create(@logged_in_user, CGI.escapeHTML(params[:content]))
     redirect '/'
   end
 end
