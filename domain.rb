@@ -116,17 +116,17 @@ class User < Model
   
   def follow(user)
     return if user == self
-    redis.set_add("user:id:#{id}:followees", user.id)
+    redis.sadd("user:id:#{id}:followees", user.id)
     user.add_follower(self)
   end
   
   def stop_following(user)
-    redis.set_delete("user:id:#{id}:followees", user.id)
+    redis.srem("user:id:#{id}:followees", user.id)
     user.remove_follower(self)
   end
   
   def following?(user)
-    redis.set_member?("user:id:#{id}:followees", user.id)
+    redis.sismember("user:id:#{id}:followees", user.id)
   end
   
   def followers
@@ -144,11 +144,11 @@ class User < Model
   protected
   
   def add_follower(user)
-    redis.set_add("user:id:#{id}:followers", user.id)
+    redis.sadd("user:id:#{id}:followers", user.id)
   end
   
   def remove_follower(user)
-    redis.set_delete("user:id:#{id}:followers", user.id)
+    redis.srem("user:id:#{id}:followers", user.id)
   end
 end
   

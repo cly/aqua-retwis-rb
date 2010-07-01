@@ -27,6 +27,22 @@ get '/timeline' do
   erb :timeline
 end
 
+post '/q' do
+  if params[:content].length == 0
+    @posting_error = "You didn't enter anything."
+  elsif params[:content].length > 140
+    @posting_error = "Keep it to 140 characters please!"
+  end
+  if @posting_error
+    @posts = @logged_in_user.timeline
+    erb :index
+  else
+    #Post.create(@logged_in_user, params[:content])
+    Post.create(@logged_in_user, CGI.escapeHTML(params[:content]))
+    redirect '/'
+  end
+end
+
 post '/post' do
   if params[:content].length == 0
     @posting_error = "You didn't enter anything."
