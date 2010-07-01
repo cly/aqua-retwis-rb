@@ -2,7 +2,7 @@
 require 'rubygems'
 require 'sinatra'  
 require 'erb'
-require 'rubyredis'
+require 'redis'
 
 require 'domain'
 require 'login-signup'
@@ -11,11 +11,10 @@ require 'cgi'
 set :sessions, true
 
 def redis
-  $redis ||= RedisClient.new(:timeout => nil)
+  $redis ||= Redis.new
 end
 
 before do
-  keys = redis.keys("*")
 end
 
 get '/' do
