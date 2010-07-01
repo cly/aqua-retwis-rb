@@ -29,11 +29,11 @@ class Model
       end
       
       def _#{type}
-        redis.get("#{klass}:id:" + id.to_s + ":#{type}")
+        redis.hget("#{klass}:" + id.to_s, "#{type}")
       end
       
       def #{type}=(val)
-        redis.set("#{klass}:id:" + id.to_s + ":#{type}", val)
+        redis.hset("#{klass}:" + id.to_s, "#{type}", val)
       end
     RUBY
   end
@@ -47,7 +47,7 @@ class User < Model
   end
   
   def self.find_by_id(id)
-    if redis.exists("user:id:#{id}:username")
+    if redis.hexists("user:#{id}", :username)
       User.new(id)
     end
   end
@@ -57,11 +57,8 @@ class User < Model
     salt = User.new_salt
 
     redis.hmset("user:#{user_id}", "username", username, "salt", salt, "hashed_password", hash_pw(salt, password))
-
     redis.set("user:username:#{username}", user_id)
-    redis.set("user:id:#{user_id}:username", username)
-    redis.set("user:id:#{user_id}:salt", salt)
-    redis.set("user:id:#{user_id}:hashed_password", hash_pw(salt, password))
+
     redis.lpush("users", user_id)
     User.new(user_id)
   end
@@ -161,14 +158,18 @@ class Post < Model
   def self.create(user, content)
     post_id = redis.incr("post:uid")
     post = Post.new(post_id)
+    
     post.content = content
     post.user_id = user.id
     post.created_at = Time.now.to_s
     post.user.add_post(post)
+    
     redis.lpush("timeline", post_id)
+    
     post.user.followers.each do |follower|
       follower.add_timeline_post(post)
     end
+    
     content.scan(/@\w+/).each do |mention|
       if user = User.find_by_username(mention[1..-1])
         user.add_mention(post)
@@ -181,7 +182,6 @@ class Post < Model
   property :created_at
   
   def created_at
-    puts self.class.name.downcase
     Time.parse(_created_at)
   end
   
