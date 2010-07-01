@@ -19,19 +19,21 @@ class Model
   
   attr_reader :id
   
-  def self.property(name)
-    klass = self.name.downcase
+  def self.property(type)
+    #Module.name gives the class name
+    #self.name also works but within self.property it is redundant
+    klass = name.downcase
     self.class_eval <<-RUBY
-      def #{name}
-        _#{name}
+      def #{type}
+        _#{type}
       end
       
-      def _#{name}
-        redis.get("#{klass}:id:" + id.to_s + ":#{name}")
+      def _#{type}
+        redis.get("#{klass}:id:" + id.to_s + ":#{type}")
       end
       
-      def #{name}=(val)
-        redis.set("#{klass}:id:" + id.to_s + ":#{name}", val)
+      def #{type}=(val)
+        redis.set("#{klass}:id:" + id.to_s + ":#{type}", val)
       end
     RUBY
   end
@@ -176,6 +178,7 @@ class Post < Model
   property :created_at
   
   def created_at
+    puts self.class.name.downcase
     Time.parse(_created_at)
   end
   
