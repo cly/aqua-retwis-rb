@@ -55,8 +55,11 @@ class User < Model
   def self.create(username, password)
     user_id = redis.incr("user:uid")
     salt = User.new_salt
-    redis.set("user:id:#{user_id}:username", username)
+
+    redis.hmset("user:#{user_id}", "username", username, "salt", salt, "hashed_password", hash_pw(salt, password))
+
     redis.set("user:username:#{username}", user_id)
+    redis.set("user:id:#{user_id}:username", username)
     redis.set("user:id:#{user_id}:salt", salt)
     redis.set("user:id:#{user_id}:hashed_password", hash_pw(salt, password))
     redis.lpush("users", user_id)
